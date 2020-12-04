@@ -278,33 +278,31 @@ pipeline {
                 DOCKER_GCR = credentials("zeebe-gcr-serviceaccount-json")
                 ZEEBE_AUTHORIZATION_SERVER_URL = 'https://login.cloud.ultrawombat.com/oauth/token'
                 ZEEBE_CLIENT_ID = 'W5a4JUc3I1NIetNnodo3YTvdsRIFb12w'
-                QA_RUN_VARIABLES = "{\"zeebeImage\": \"${env.IMAGE}:${env.TAG}\", \"generationTemplate\": \"${params.GENERATION_TEMPLATE}\", \"channel\": \"Internal Dev\", " +
-                    "\"branch\": \"${env.BRANCH_NAME}\", \"build\": \"${currentBuild.absoluteUrl}\"}"
+                QA_RUN_VARIABLES = "{\"zeebeImage\": \"${env.IMAGE}:${env.TAG}\", \"generationTemplate\": \"${params.GENERATION_TEMPLATE}\", " +
+                                    "\"channel\": \"Internal Dev\", \"branch\": \"${env.BRANCH_NAME}\", \"build\": \"${currentBuild.absoluteUrl}\", " +
+                                    "\"businessKey\": \"${currentBuild.absoluteUrl}\", \"processId\": \"qa-protocol\"}"
+                BUSINESS_KEY = "${currentBuild.absoluteUrl}"
             }
 
             steps {
-                timeout(time: shortTimeoutMinutes, unit: 'MINUTES') {
-                    container('docker') {
-                        sh '.ci/scripts/docker/upload-gcr.sh'
-                        withVault(
-                            [vaultSecrets:
-                                 [
-                                     [path        : 'secret/common/ci-zeebe/testbench-secrets-int',
-                                      secretValues:
-                                          [
-                                              [envVar: 'ZEEBE_CLIENT_SECRET', vaultKey: 'clientSecret'],
-                                              [envVar: 'ZEEBE_ADDRESS', vaultKey: 'contactPoint'],
-                                          ]
-                                     ],
-                                 ]
-                            ]
-                        ) {
-                            sh '.ci/scripts/distribution/qa-testbench.sh'
-                        }
+                container('docker') {
+                    sh '.ci/scripts/docker/upload-gcr.sh'
+                    withVault(
+                        [vaultSecrets:
+                             [
+                                 [path        : 'secret/common/ci-zeebe/testbench-secrets-int',
+                                  secretValues:
+                                      [
+                                          [envVar: 'ZEEBE_CLIENT_SECRET', vaultKey: 'clientSecret'],
+                                          [envVar: 'ZEEBE_ADDRESS', vaultKey: 'contactPoint'],
+                                      ]
+                                 ],
+                             ]
+                        ]
+                    ) {
+                        sh '.ci/scripts/distribution/qa-testbench.sh'
                     }
                 }
-
-                input message: 'Were all QA tests successful?', ok: 'Yes'
             }
         }
 
