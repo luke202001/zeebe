@@ -1,7 +1,5 @@
 #!/bin/sh -eux
 
-apt-get install --no-install-recommends -qq -y jq
-
 chmod +x clients/go/cmd/zbctl/dist/zbctl
 
 alias zbctl="clients/go/cmd/zbctl/dist/zbctl"

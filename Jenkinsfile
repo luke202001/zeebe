@@ -287,6 +287,8 @@ pipeline {
             steps {
                 container('docker') {
                     sh '.ci/scripts/docker/upload-gcr.sh'
+                }
+                container('maven') {
                     withVault(
                         [vaultSecrets:
                              [
